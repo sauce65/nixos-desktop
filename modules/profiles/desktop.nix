@@ -51,12 +51,11 @@
       "general.useragent.override.teams.live.com" =
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0";
 
-      # Override Firefox's gfxInfo blocklist on AMD Mesa — Phoenix/780M +
-      # Mesa 26.0.6 is fine, but Firefox flagged DMABUF_SURFACE_EXPORT as
-      # BROKEN_DRIVER. Forcing these enables zero-copy GPU->compositor handoff
-      # and native KWin compositor passthrough. Harmless on Nvidia.
-      "widget.dmabuf.force-enabled" = true;
-      "gfx.webrender.compositor.force-enabled" = true;
+      # NOTE: GPU-specific Firefox tuning is deliberately NOT here. Forcing
+      # widget.dmabuf / gfx.webrender.compositor was added for an AMD-Mesa
+      # gfxInfo false-positive, but forcing it on Nvidia + KWin Wayland causes a
+      # fatal "importing the supplied dmabufs failed" protocol crash on any
+      # video. Such overrides belong on the individual (AMD) machine instead.
     };
     preferencesStatus = "default";
   };
