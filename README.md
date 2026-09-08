@@ -43,7 +43,12 @@ config on the consuming side.
 
 - **`nrs`** — `nixos-rebuild switch` with a `$(hostname)`-derived flake target,
   so you can't apply one machine's config to another. Flake dir defaults to
-  `~/nixos-configs`; override with `$NRS_FLAKE`.
+  `~/nixos-configs`; override with `$NRS_FLAKE`. Refuses to switch when the
+  running system uses declarative passwords (`users.mutableUsers = false`) but a
+  `hashedPasswordFile` has gone missing — that switch would rewrite the accounts
+  as locked, which on a machine with no remote login means recovering from a
+  physical console. Costs no sudo and no extra evaluation; bypass with
+  `$NRS_SKIP_PASSWD_CHECK`.
 - **`ssh-load-keys`** — load SSH keys into the agent (regular + FIDO2). Inject
   extra machine-specific key paths via `$SSH_LOAD_KEYS`. Wire it to a
   `graphical-session`-bound systemd user service rather than bashrc, or FIDO2
