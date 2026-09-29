@@ -11,7 +11,10 @@
 
   # Keep journald off the disk on always-on nodes by default; raise per-host
   # where persistent logs are actually wanted (e.g. a NAS, an internet-facing box).
-  services.journald.extraConfig = lib.mkDefault "Storage=volatile";
+  # `services.journald.extraConfig` was removed from nixpkgs in 2026-09; the
+  # structured `settings` option is the replacement and is what consumers must
+  # override (`settings.Journal.Storage`, not `extraConfig`).
+  services.journald.settings.Journal.Storage = lib.mkDefault "volatile";
 
   # base.nix already sets key-only auth; clan's serverModule owns PermitRootLogin
   # (prohibit-password, for deploys). Here: modern-crypto-only + session bounds.
