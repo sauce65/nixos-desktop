@@ -16,6 +16,19 @@
   # rebuild leaves the current one unbootable. Press any key to pause.
   boot.loader.timeout = lib.mkDefault 5;
 
+  # Every generation keeps its kernel and initrd on the ESP, about 41 MB a
+  # pair, and nothing retired them. On 2026-10-01 the laptop's 511 MB ESP held
+  # 14 distinct pairs for 35 generations with 3.2 MB free, and the next rebuild
+  # fails at the bootloader step in that state. Ten entries bounds the ESP: the
+  # bootloader installer removes the kernels of entries it no longer writes.
+  # The weekly collection bounds the generations themselves.
+  boot.loader.systemd-boot.configurationLimit = lib.mkDefault 10;
+  nix.gc = {
+    automatic = lib.mkDefault true;
+    dates = lib.mkDefault "weekly";
+    options = lib.mkDefault "--delete-older-than 30d";
+  };
+
   # SSH server: key-only, no root. Lets a broken machine be recovered from
   # another box on the LAN. Requires ~/.ssh/authorized_keys on each host.
   services.openssh = {
