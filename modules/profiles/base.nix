@@ -59,5 +59,5 @@
 
   # Keep the legacy NIX_PATH wired up so the /etc/nixos recovery fallback works
   # without --flake. Daily-driver rebuilds use --flake and ignore this.
-  nix.nixPath = [ "nixos-config=/etc/nixos/configuration.nix" ];
+  nix.settings.nix-path = [ "nixos-config=/etc/nixos/configuration.nix" ];
 }
