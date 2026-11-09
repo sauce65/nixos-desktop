@@ -41,22 +41,12 @@
 
   programs.firefox = {
     enable = true;
-    preferences = {
-      # Make Teams web serve the full Edge/Chrome client instead of the
-      # degraded Firefox "lite" path, and let WebRTC negotiate H.264 — which
-      # AMD VCN decodes in hardware (VP8 doesn't, and Teams' Firefox path
-      # loves VP8).
-      "general.useragent.override.teams.microsoft.com" =
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0";
-      "general.useragent.override.teams.live.com" =
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0";
-
-      # NOTE: GPU-specific Firefox tuning is deliberately NOT here. Forcing
-      # widget.dmabuf / gfx.webrender.compositor was added for an AMD-Mesa
-      # gfxInfo false-positive, but forcing it on Nvidia + KWin Wayland causes a
-      # fatal "importing the supplied dmabufs failed" protocol crash on any
-      # video. Such overrides belong on the individual (AMD) machine instead.
-    };
+    # Preferences set here or per machine land in
+    # /etc/firefox/policies/policies.json on the DEFAULT pref branch, which
+    # about:config's "modified" filter does not show. GPU-specific tuning stays
+    # out of this shared profile: forcing widget.dmabuf / gfx.webrender.compositor
+    # on Nvidia + KWin Wayland crashes Firefox on any video. The laptop carries
+    # its own gfx.canvas.accelerated override in its configuration.nix.
     preferencesStatus = "default";
   };
 }
