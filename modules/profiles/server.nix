@@ -80,14 +80,17 @@
 
   # Weekly CVE scan of the system closure → journal (journalctl -u vulnix-scan).
   # vulnix exits 2 when it finds matches, which is a normal result, not a failure.
+  # The NVD database goes to /var/cache/vulnix through --cache-dir: vulnix does
+  # not read XDG_CACHE_HOME and defaults to ~/.cache/vulnix, which as root put
+  # the database in /root/.cache/vulnix (1.4 GB on beacon by 2026-11-16, since
+  # the ZODB file only grows) while the systemd-managed directory stayed empty.
   systemd.services.vulnix-scan = {
     description = "Scan the system closure for known CVEs (vulnix)";
     serviceConfig = {
       Type = "oneshot";
-      ExecStart = "${pkgs.vulnix}/bin/vulnix --system";
+      ExecStart = "${pkgs.vulnix}/bin/vulnix --cache-dir /var/cache/vulnix --system";
       SuccessExitStatus = "0 2";
       CacheDirectory = "vulnix";
-      Environment = "XDG_CACHE_HOME=/var/cache";
     };
   };
   systemd.timers.vulnix-scan = {
