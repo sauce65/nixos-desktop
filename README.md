@@ -10,7 +10,7 @@ kept out.
 | Output | Contents |
 |---|---|
 | `nixosModules.base` | Headless-safe baseline: systemd-boot, key-only SSH, locale, flakes. User-agnostic. |
-| `nixosModules.desktop` | KDE Plasma 6 (Wayland/SDDM), PipeWire, printing, NetworkManager, Firefox AMD/Teams fixes. |
+| `nixosModules.desktop` | KDE Plasma 6 (Wayland/SDDM) with a PowerDevil fix, PipeWire, printing, NetworkManager, Firefox AMD/Teams fixes. |
 | `nixosModules.server` | Thin headless baseline (no GUI, volatile journald). |
 | `overlays.default` | `pkgs.nrs`, `pkgs.ssh-load-keys`, `pkgs.vintagestory-latest`. |
 | `packages.<system>` | The same helpers, runnable standalone (`nix run github:sauce65/nixos-desktop#nrs`). |
@@ -18,6 +18,12 @@ kept out.
 The `desktop` profile carries some real debugging: it forces the Edge UA on
 Teams web (full client + H.264 that AMD VCN decodes in hardware) and overrides
 Firefox's gfx blocklist so DMABUF zero-copy works on AMD Mesa.
+
+It also patches PowerDevil with upstream MR 739 (KDE bug 513809), so waking
+from an idle-suspend no longer leaves the screens dimmed to 30%. Until the fix
+ships in a Plasma release, this means `powerdevil` and the two packages that
+build against it, `plasma-desktop` and `kdeplasma-addons`, are built locally
+instead of coming from the binary cache.
 
 ## Usage
 

@@ -23,6 +23,29 @@
   services.displayManager.sddm.enable = true;
   services.desktopManager.plasma6.enable = true;
 
+  # PowerDevil can leave every screen dimmed to 30% after waking from an
+  # idle-suspend (KDE bug 513809). Its idle-dim action only exists while some
+  # display has brightness control. When they all drop out at once, as can
+  # happen across a resume, the action is deleted but its 30% limit is not,
+  # and the returning displays inherit it. The brightness slider and the
+  # monitors' own DDC/CI value both still read 100% (KWin applies the dim in
+  # software on DDC/CI monitors), so only `kscreen-doctor -o` shows
+  # "dimming to 30%". The patch is upstream MR 739 (commit 9f056c5b), vendored
+  # verbatim and targeted at Plasma 6.9.0. Once powerdevil ships it, the patch
+  # stops applying and the powerdevil build fails: delete this overlay and the
+  # patch file then.
+  nixpkgs.overlays = [
+    (final: prev: {
+      kdePackages = prev.kdePackages.overrideScope (kfinal: kprev: {
+        powerdevil = kprev.powerdevil.overrideAttrs (old: {
+          patches = (old.patches or [ ]) ++ [
+            ../../patches/powerdevil-undim-when-displays-vanish.patch
+          ];
+        });
+      });
+    })
+  ];
+
   # A baseline KDE app set most desktops want.
   environment.systemPackages = [ pkgs.kdePackages.kate ];
 

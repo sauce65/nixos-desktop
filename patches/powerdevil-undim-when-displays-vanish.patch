@@ -1,0 +1,62 @@
+From 9f056c5b2ac75b232cb122f80df8eccb7f4e5525 Mon Sep 17 00:00:00 2001
+From: Petru Mare <marepetru2015@gmail.com>
+Date: Sun, 8 Nov 2026 21:06:05 +0000
+Subject: [PATCH] Fix screens staying dimmed when displays disappear while
+ dimmed
+
+The DimDisplay action only exists while a display with brightness control
+does. When the last one disappears, Core::refreshActions() deletes the
+action, and with it the knowledge that it has dimmed. Its dimming limit stays
+in ScreenBrightnessController though. The action created for the returning
+display has nothing to undo on wake-up, and the leftover limit gets applied
+to the returning display, so it stays at 30%.
+
+Displays disappear like this around suspend and resume, when a monitor is
+unplugged or switched off, when a laptop lid is closed, and when a DDC/CI
+write fails shortly after dimming.
+
+Undim when the action is destroyed while dimmed.
+
+BUG: 513809
+FIXED-IN: 6.9.0
+---
+ daemon/actions/bundled/dimdisplay.cpp | 10 ++++++++++
+ daemon/actions/bundled/dimdisplay.h   |  1 +
+ 2 files changed, 11 insertions(+)
+
+diff --git a/daemon/actions/bundled/dimdisplay.cpp b/daemon/actions/bundled/dimdisplay.cpp
+index 0ff7be9a5..f0696f810 100644
+--- a/daemon/actions/bundled/dimdisplay.cpp
++++ b/daemon/actions/bundled/dimdisplay.cpp
+@@ -36,6 +36,16 @@ DimDisplay::DimDisplay(QObject *parent)
+     m_inhibitScreen = policyAgent->unavailablePolicies() & PowerDevil::PolicyAgent::ChangeScreenSettings;
+ }
+ 
++DimDisplay::~DimDisplay()
++{
++    // This action goes away while dimmed when the last display disappears, e.g. on resume from
++    // suspend, and the action created for the returning display won't know it has to undim
++    if (m_dimmed) {
++        core()->screenBrightnessController()->setDimmingRatio(DIMMING_ID, 1.0);
++        setKeyboardBrightnessHelper(m_oldKeyboardBrightness);
++    }
++}
++
+ void DimDisplay::onWakeupFromIdle()
+ {
+     if (!m_dimmed) {
+diff --git a/daemon/actions/bundled/dimdisplay.h b/daemon/actions/bundled/dimdisplay.h
+index 2aa37907b..1e89238ce 100644
+--- a/daemon/actions/bundled/dimdisplay.h
++++ b/daemon/actions/bundled/dimdisplay.h
+@@ -18,6 +18,7 @@ class DimDisplay : public PowerDevil::Action
+     Q_OBJECT
+ public:
+     explicit DimDisplay(QObject *parent);
++    ~DimDisplay() override;
+ 
+ protected:
+     void onWakeupFromIdle() override;
+-- 
+GitLab
+
